@@ -67,16 +67,20 @@ install.packages(c(
 ## Directory Structure
 ```text
 .
-├── README.md                  # this file
-├── data/                      # raw and processed IHME CSVs
-│   ├── IHME_USA_DIABETES_...2015.csv
-│   ├── IHME_USA_DIABETES_...2016.csv
-│   └── ... (up to 2019)
-├── scripts/                   # R analysis scripts
-│   └── EDA_analysis.R
-├── output/                    # figures and tables
-│   └── figures/
-├── EDA_Final_Draft.html       # knitted HTML report
+└── qtm302w-EDA/
+    ├── renv/
+    │   ├── library/R-4.3/aarch64-apple-darwin20/renv
+    │   ├── activate.R 
+    │   └── settings.json/
+    │       ├── diagram!
+    │       └── :)
+    ├── .gitattributes
+    ├── EDA_Final_Draft.Rmd
+    ├── EDA_Final_Draft.html
+    ├── EDA_project.Rproj
+    ├── README.md
+    ├── renv.lock
+    └── data
 ```
 *(Generate ASCII tree via `tree -L 2` or https://tree.nathanfriend.io)*
 

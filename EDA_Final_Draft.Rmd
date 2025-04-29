@@ -1,0 +1,590 @@
+---
+title: "EDA_Final_Draft"
+output: html_document
+date: "2025-02-26, revised 2025-04-28"
+author: Julia Lin, Jessie Hao, Grace Song
+editor_options: 
+  markdown: 
+    wrap: sentence
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Introduction and Background
+
+Diabetes is a major public health concern in the United States, with significant disparities in prevalence and mortality across racial and ethnic groups.
+Research has shown that non-Hispanic Black, Hispanic, and Native American populations face higher rates of diabetes-related complications and mortality compared to non-Hispanic White individuals, driven by a combination of biological, social, and healthcare system factors (Spanakis & Golden, 2013).
+These disparities not only contribute to a greater burden of disease within these communities but also reflect broader systemic issues in healthcare equity and chronic disease management among certain racial minorities.
+Understanding these patterns is essential for developing policies that promote better healthcare access, improve patient outcomes, and reduce long-term healthcare costs associated with diabetes complications.
+
+To explore these disparities, we analyze the dataset titled United States Diabetes Mortality by County, Race, and Ethnicity 2000–2019 from the Institute for Health Metrics and Evaluation (IHME).
+This dataset offers annual, county-level mortality estimates stratified by race and ethnicity, allowing for a comprehensive examination of disparities across different demographic groups and geographic regions.
+By focusing on the 2015 to 2019 period, our analysis captures the most up-to-date pre-pandemic trends, avoiding the confounding effects of COVID-19, which significantly altered diabetes-related mortality patterns due to healthcare disruptions and increased disease severity among diabetic patients (Bashar et al., 2023).
+
+We begin our analysis by identifying the racial populations with the highest diabetes-related mortality rates in the U.S.
+We first generate the summary statistics of mortality patterns and trends for this racial group.
+For better visualization, we transform diabetes mortality rate from the dataset into mortality per 10,000,000 population.
+We further examine geographic factors driving diabetes mortality by aggregating and mapping mortality rates across counties and states, highlighting regional variations that may suggest environmental or healthcare access-related influences.
+
+# Data Preparation
+
+### Input Datasets
+
+Fist prepare the environment for our research project, and load raw annual datasets on diabetes from 2015 to 2019.
+
+```{r}
+# Set Working Directory 
+setwd("/Users/gracesong/Library/Mobile Documents/com~apple~CloudDocs/Documents/Emory/QTM 302W/EDA_project/data")
+
+# Load the 2015-2019 dataset
+data_2015 <- read.csv("IHME_USA_DIABETES_COUNTY_RACE_ETHN_2000_2019_MX_2015_BOTH_Y2025M02D10.csv")
+data_2016 <- read.csv("IHME_USA_DIABETES_COUNTY_RACE_ETHN_2000_2019_MX_2016_BOTH_Y2025M02D10.csv")
+data_2017 <- read.csv("IHME_USA_DIABETES_COUNTY_RACE_ETHN_2000_2019_MX_2017_BOTH_Y2025M02D10.csv")
+data_2018 <- read.csv("IHME_USA_DIABETES_COUNTY_RACE_ETHN_2000_2019_MX_2018_BOTH_Y2025M02D10.csv")
+data_2019 <- read.csv("IHME_USA_DIABETES_COUNTY_RACE_ETHN_2000_2019_MX_2019_BOTH_Y2025M02D10.csv")
+```
+
+### Load Library
+
+Before proceeding with analysis, we first loaded the necessary R packages.
+These include tools for data manipulation (dplyr), statistical analysis (stats), visualization (ggplot2, viridis), and geospatial mapping (sf, maps, mapdata).
+To keep the output clean, we use suppressPackageStartupMessages() when loading packages.
+
+```{r}
+suppressPackageStartupMessages(library(dplyr))
+library(ggplot2)
+library(stats)
+library(knitr)
+library(viridis) 
+library(sf)
+library(maps)
+library(mapdata)
+library(dplyr)
+```
+
+### Combine Datasets
+
+In this step, we first consolidated multiple annual datasets into a single dataset for later analysis.
+After combination, the dataset contains the death rate of diabetes across various demographical and geographical conditions from 2015 to 2019.
+
+```{r}
+combined_data <- rbind(data_2015, data_2016, data_2017, data_2018, data_2019)
+colnames(combined_data)
+```
+
+### Find the Race Group with the Highest Death Rate
+
+With the background information provided in the introduction, different racial groups exhibited various death rates with diabetes.Thus, to conduct a deeper analysis in the variables correlated with diabetes death rate, we focused on one specific ethnicity group to better understand health outcomes and target interventions.
+
+The raw dataset includes both individual county level input and summary input with location name "United States of America".
+For the purpose of our project to investigate how geographical and demographical variables affect mortality rate caused by diabetes in the US, we removed these summary inputs for clarity.
+After filtering out the summary statistics, we aggregate the mortality data by race over all age group, sex group, and geographical features.
+Then the annual death rate is calculated by averaging the total mortality over five year period and ranked to find the race group with highest death rate.
+
+```{r}
+# Filter and remove repeated summary data
+total_data <- combined_data[combined_data$location_name == "United States of America", ]
+filtered_data <- total_data[total_data$race_name != "Total" & total_data$age_group_id == 22, ]
+
+# Aggregate the val column by race, summing up the values
+aggregated_data <- aggregate(val ~ race_name, data = filtered_data, sum)
+
+# Calculate the annual death rate by dividing the total val by 5
+aggregated_data$annual_death_rate <- aggregated_data$val / 5
+
+# Find the race with the highest annual death rate
+highest_death_rate_race <- aggregated_data[which.max(aggregated_data$annual_death_rate), ]
+
+# Print the race with the highest annual death rate and the rate
+print(highest_death_rate_race)
+
+```
+
+```{r}
+# Reorder race_name based on annual_death_rate (descending)
+aggregated_data$race_name <- reorder(aggregated_data$race_name, -aggregated_data$annual_death_rate)
+
+# Create the bar plot
+ggplot(aggregated_data, aes(x = race_name, y = annual_death_rate, fill = race_name)) +
+  geom_bar(stat = "identity") +
+  labs(title = "Annual Death Rate by Race (Sorted)",
+       x = "Race",
+       y = "Annual Death Rate") +
+  theme_minimal() +
+  theme(legend.position = "none")
+```
+
+Since <mark>**the non-Hispanic American Indian or Alaska Native [AIAN]**</mark> got the highest death rate, we decide to focus on this particular racial group.
+Our goal is to investigate whether the high overall mortality rate is correlated with other variables such as age and location.
+
+### Data Cleaning and Filtering
+
+After finding the AIAN to be the racial group with highest mortality rate, we conducted further data filtration and data cleaning.Only AIAN grace group was chosen for precise analysis.
+At the same time, since the original dataset contained summary variables like”All Ages” and “Age-standardized”, which cannot represents the variability of counties in mortality rates among each individual groups, the summary statistical variables were also dropped out.
+To better manage the data, only the most relevant columns for analysis were kept, including location identifiers, age categories, and the mortality with their confidence intervals, To ensure the integrity of statistical calculations, we also excluded rows with missing data in numerical variables (“val”, “upper”, and “lower”).
+Finally, to ensure better visualization across different populations, we scaled our death rate estimates by multiplying 10,000,000, transforming the death rate to the death per 10,000,000.
+In the analysis below, the scaled estimates of death per 10,000,000 will be addressed as mortality/death rate for simplicity.
+
+```{r}
+# Filter out the race group "AIAN" from the combined_data
+AIAN_data <- combined_data %>%
+  filter(
+    race_name == "AIAN",
+    age_name != "All Ages",
+    age_name != "Age-standardized"
+  ) %>%
+  select(
+    location_id, location_name, age_group_id, 
+    age_name, year, val, upper, lower
+  ) %>%
+  filter(!is.na(val) & !is.na(upper) & !is.na(lower)) %>%
+  mutate(value_scaled = val * 10000000)
+```
+
+This step extracted the information that will be useful for later analysis.
+Since the data set shows the information of all inputs in the AIAN race group, repetitive information is neglected in this step.
+
+### Variables of the cleaned data
+
+```{r}
+# Show variables of the cleaned data 
+colnames(AIAN_data)
+```
+
+| Variables | Definition |
+|------------------------------------|------------------------------------|
+| location_id | A unique numeric identifier for the location, including county and state codes |
+| location_name | Location of the estimates |
+| age_group_id | A unique numeric identifier for each age group |
+| age_name | The range of each age group of each estimate |
+| year | The year of data collected |
+| val | Mean death rate in each group |
+| upper | 97.5% percentile estimate |
+| lower | 2.5% percentile estimate |
+| value_scaled | Mean death per 10,000,000 |
+
+# Basic Distribution and Statistics
+
+### Histogram of diabetes death rates
+
+Examining the distribution of diabetes-related death rates among AIAN individuals provides crucial insights into the variability and patterns in mortality rates across this population.
+A symmetrical distribution suggests that most AIAN individuals experience similar mortality rates, with fewer extreme cases.
+A skewed distribution could indicate that certain regions or subpopulations face disproportionately high or low mortality rates.
+It is also crucial to identify any outliers.
+Outliers may represent counties with exceptionally high mortality rates, which could signal healthcare access issues, socioeconomic disparities, or genetic predispositions.
+Conversely, outliers on the lower end may indicate areas with effective diabetes management and preventive care.
+
+```{r}
+hist(AIAN_data$value_scaled, 
+     main = "Figure 1: Distribution of Diabetes Mortality Rates", 
+     xlab = "Death per 10,000,000", 
+     col = "steelblue", 
+     border = "black",   
+     breaks = 30)
+```
+
+Figure 1 is a bar plot displaying the distribution of diabetes-related mortality rates among non-Hispanic American Indian or Alaska Native (AIAN) individuals from 2015 to 2019.
+Each bar represents the number of counties that fall within a given range of diabetes mortality rates.
+This bar plot provides a frequency distribution of mortality rates, helping to answer the question: How are diabetes-related deaths distributed across AIAN populations?
+
+X-axis shows the mortality Rate Ranges by dividing mortality rates into intervals, showing how often different ranges of mortality rates occur.
+Y-axis represents how many counties fall into each mortality rate range.
+
+Understanding the distribution of mortality rates is fundamental to this project because it provides a high-level overview of disparities before diving into specific geographic and demographic factors.
+
+As the distribution is highly right-skewed, it indicates that most counties fall within a low mortality range, suggesting widespread but moderate impact of diabetes and a few counties are disproportionately affected by diabetes mortality.
+This helps us target specific geographic areas or demographical group for further investigation.
+The wide distribution also indicates large variability, suggesting that AIAN communities may have unequal access to healthcare, differences in socioeconomic conditions, or variations in diabetes management programs.
+
+### Boxplot of death rates across age groups
+
+The above histogram suggests that there is variability of diabetes mortality rate and suggesting specific geographical and demographical factors may contribute to such disparities.
+Thus, this project will investigate how do these variables affect the mortality rate of AIAN community.
+
+Age is a variable that may contribute to the disparity in morality.
+Previous studies have concluded that diabetes has more impact to middle-age and elder populations.
+We want to investigate whether such trend holds true for AIAN group, and if age can account for the large variability observed from figure 1.
+
+A boxplot is particularly useful in analyzing diabetes mortality rates across age groups because it provides a clear, concise summary of the distribution, spread, and outliers in the data.
+Compared to other types of plots, it offers several advantages.
+A boxplot visualizes the entire distribution within each age group, capturing key statistical measures—median, quartiles, minimum, maximum, and outliers—all in one plot.
+This visualization is essential for understanding how age influences mortality risk and identifying potential disparities in diabetes-related health outcomes.
+Compared to a histogram, which only shows the distribution of a single variable, a boxplot also compares multiple age groups simultaneously, which better shows trends in mortality rates across age groups.
+
+```{r}
+# Convert 'age_name' to a factor with the specified order
+age_order <- c("<1 year", "1 to 4", "5 to 9", "10 to 14", "15 to 19", 
+               "20 to 24", "25 to 29", "30 to 34", "35 to 39", "40 to 44", 
+               "45 to 49", "50 to 54", "55 to 59", "60 to 64", "65 to 69", 
+               "70 to 74", "75 to 79", "80 to 84", "85 plus")
+
+AIAN_data$age_name <- factor(AIAN_data$age_name, levels = age_order, ordered = TRUE)
+
+boxplot(value_scaled ~ age_name, data = AIAN_data, 
+        las = 2,                               
+        main = "Figure 2: Diabetes Mortality across age group", 
+        xlab = "",                            
+        ylab = "Death per 10,000,000",
+        col = "seagreen3",                   
+        border = "black",                   
+        notch = TRUE,                       
+        outline = FALSE,                      
+        cex.axis = 0.8,                      
+        par(mar = c(8, 5, 4, 2)))            
+grid(nx = NA, ny = NULL, lty = "dashed", col = "gray", lwd = 0.7)
+```
+
+Figure 2 is a boxplot that visually represents diabetes mortality rates across different age groups within the AIAN population.
+This figure provides a summary of the spread, central tendency, and variability of mortality rates for each age category, allowing for a clear comparison of diabetes-related deaths among different age groups.
+
+X-axis (Age Groups): Represents different age categories.
+Y-axis (Death Rate per 100,000 or other unit): Shows the diabetes mortality rate within each age group.
+Box (Interquartile Range, IQR): Displays the middle 50% of data, showing where most mortality rates fall.
+Median Line (Inside the Box): Represents the central value (50th percentile) of mortality rates for that age group.
+Whiskers (Lines Extending from the Box): Show the spread of most data points, indicating minimum and maximum mortality rates (excluding outliers).
+Outliers (Dots Beyond the Whiskers): Represent counties with exceptionally high mortality rates, indicating regional disparities or high-risk populations.
+
+Older age groups likely have higher mortality rates as the median mortality rate increases across age groups, this confirms that older individuals are at higher risk of dying from diabetes.
+As age increases, variability in each age group also increases, indicated by wider boxes and more extreme outliers.
+Compared to younger populations, counties with older populations have exceptionally high mortality rates, it may represent undeserved communities with limited healthcare access.
+
+# Analysis and Visualization
+
+We identified that there are potential factors causing the wide variability of diabetes mortality rates among AIAN populations from the above analysis, so then we explore how more specific factors affect diabetes mortality rate among AIAN communities.
+Understanding the factors that influence diabetes mortality is crucial for addressing disparities among AIAN populations.
+Since diabetes-related deaths are not uniform across all demographics, it is essential to examine how age, geographic location (county and state), and healthcare access impact mortality rates.
+Different age groups face varying risks, with older populations often experiencing higher mortality due to complications, while younger groups may indicate emerging public health concerns.
+Additionally, disparities at the county and state level can highlight regional differences in healthcare access, socioeconomic conditions, and policy effectiveness, which directly affect health outcomes.
+By investigating these factors in depth, we can identify the most vulnerable populations, uncover regional disparities, and guide targeted interventions to reduce diabetes-related deaths.
+
+## Difference in death rate by age groups
+
+### Define age categories
+
+In the original dataset, age groups were divided into 4-year intervals (e.g., 30-34, 35-39, 40-44), which, while detailed, made it difficult to identify broader trends and meaningful differences in diabetes mortality.
+To improve the clarity and interpretability of our analysis, we restructured these narrow age brackets into broader categories that align with key life stages and diabetes risk factors.
+This recategorization allows us to better capture disparities in mortality rates, ensuring that we can effectively compare age-related trends without unnecessary fragmentation.
+By grouping ages into Infant/Young Child, Child/Teen, Young Adult, Middle-Aged Adult, and Elderly, we can more easily pinpoint when diabetes mortality risk becomes significant, assess the impact of aging on health outcomes, and align our findings with public health guidelines.
+Additionally, broader age categories reduce statistical noise and improve visualization, making it easier to interpret trends and design targeted interventions for high-risk populations within the AIAN community.
+
+```{r}
+age_AIAN_data <- AIAN_data %>%
+  mutate(age_group = case_when(
+    age_name %in% c("<1 year", "1 to 4") ~ "Infant/Young Child",
+    age_name %in% c("5 to 9", "10 to 14", "15 to 19") ~ "Child/Teen",
+    age_name %in% c("20 to 24", "25 to 29", "30 to 34", "35 to 39", "40 to 44") ~ "Young Adult",
+    age_name %in% c("45 to 49", "50 to 54", "55 to 59", "60 to 64") ~ "Middle-Aged Adult",
+    age_name %in% c("65 to 69", "70 to 74", "75 to 79", "80 to 84", "85 plus") ~ "Elderly",
+    TRUE ~ "Unknown"
+  ))
+```
+
+### Distribution of each age group
+
+```{r}
+# Convert age_group into a factor with the specified order
+age_group_order <- c("Infant/Young Child", "Child/Teen", "Young Adult", "Middle-Aged Adult", "Elderly")
+
+# Group data by age group and count occurrences
+age_distribution <- age_AIAN_data %>%
+  group_by(age_group) %>%
+  summarise(count = n()) %>%
+  mutate(age_group = factor(age_group, levels = age_group_order, ordered = TRUE)) 
+
+
+ggplot(age_distribution, aes(x = age_group, y = count)) +
+  geom_bar(stat = "identity", fill = "steelblue", color = "black", alpha = 0.8, width = 0.6) +  
+  labs(title = "Figure 3: Distribution of Diabetes Mortality Across Age Groups",
+       x = "", 
+       y = "Number of Observations") +
+  theme_minimal() +  
+  theme(
+    axis.text.x = element_text(size = 10),  
+    axis.title = element_text(face = "bold"),
+    plot.title = element_text(hjust = 0.5, face = "bold", size = 12),
+    plot.margin = margin(10, 10, 10, 10)  
+  ) +
+  geom_text(aes(label = count), vjust = -0.5, size = 4)
+```
+
+Figure 3 is a bar chart displaying the distribution of diabetes-related mortality cases across different age groups.
+The x-axis represents recategorized age groups, while the y-axis shows the number of observations (i.e., reported diabetes-related deaths) for each group.
+The height of each bar corresponds to the total number of mortality cases within that age category.
+The number of deaths is lowest among infants and young children, which is expected since diabetes-related mortality is rare at younger ages.
+Mortality rises significantly in young adults and remains high in middle-aged and elderly individuals.
+This suggests that diabetes becomes more fatal as individuals age, likely due to complications such as cardiovascular disease, kidney failure, and neuropathy.
+The young adult and elderly categories have the highest number of observed deaths (13,975 each).The high number of deaths in young adults may be related to other factors like poor diabetes management, limited access to healthcare, or late diagnosis in this group.
+In contrast, high mortality in elderly individuals aligns with our expectations, as diabetes complications tend to worsen with age.
+
+### Summary statistics by age group
+
+While examining the total number of reported diabetes-related deaths for each age group provides insight into which groups experience the highest mortality burden, it does not account for differences in population size across these age groups.
+This is why we also calculate the average death rate, which gives a more meaningful measure of risk and mortality intensity within each group.
+Different age groups have varying population sizes, meaning that higher total deaths do not necessarily indicate a higher risk of mortality.
+For example, if the elderly population is much larger than the young adult population, naturally, there will be more reported deaths.
+However, this does not mean elderly individuals are necessarily at a higher risk unless we normalize by population size.
+Average death rate (deaths per 10,000,000 people) allows for fair comparisons across age groups.
+
+```{r}
+age_summary <- age_AIAN_data %>%
+  group_by(age_group) %>%
+  summarise(
+    mean_unit_death = mean(value_scaled, na.rm = TRUE),
+    sd_unit_death = sd(val, na.rm = TRUE),
+    median_unit_death = median(value_scaled, na.rm = TRUE),
+    min_unit_death = min(value_scaled, na.rm = TRUE),
+    max_unit_death = max(value_scaled, na.rm = TRUE),
+    count = n()
+  ) %>%
+  arrange(desc(mean_unit_death))
+
+print(age_summary)
+```
+
+### Visualization of mean death rate in each age group
+
+After visualizing the distribution of number of reported death in each age group, we also visualize the average death rate across age groups.
+
+```{r}
+# Summarize average death rate per age group per year
+age_group_order <- age_AIAN_data %>%
+  group_by(age_group) %>%
+  summarize(overall_mean = mean(value_scaled, na.rm = TRUE)) %>%
+  arrange(desc(overall_mean)) %>%
+  pull(age_group)
+
+# Step 2: Summarize by year and age group, and apply the factor levels
+age_trend <- age_AIAN_data %>%
+  group_by(age_group, year) %>%
+  summarize(mean_death_rate = mean(value_scaled, na.rm = TRUE), .groups = "drop") %>%
+  mutate(age_group = factor(age_group, levels = age_group_order))
+
+# Step 3: Plot
+ggplot(age_trend, aes(x = year, y = mean_death_rate, color = age_group)) +
+  geom_line(size = 1.2) +
+  geom_point(size = 1) +
+  labs(
+    title = "Figure 4: Diabetes Death Rate Trends by Age Group",
+    x = "Year",
+    y = "Mean Death Rate (per 10 million)",
+    color = "Age Group"
+  ) +
+  theme_minimal()+
+  theme(
+    plot.title = element_text(hjust = 0.5, face = "bold", size = 12)
+  )
+```
+
+Figure 4 shows the mean diabetes-related death rate (per 10 million people) over time across different age groups. The elderly group consistently had the highest death rate, with a slight downward trend from 2015 to 2019. Middle-aged adults maintained the second highest rates, showing relatively little change across the years. Young adults, children/teens, and infants/young children exhibited substantially lower death rates compared to older age groups, with minimal fluctuations over time. Overall, while diabetes mortality was highest among the elderly, a gradual decline is observed, whereas mortality rates for younger groups remained relatively stable.
+
+```{r}
+age_summary$age_group<-factor(age_summary$age_group, levels = rev(unique(age_summary$age_group)))
+ggplot(age_summary, aes(x = reorder(age_group, mean_unit_death), y = mean_unit_death, fill = age_group)) +  
+  geom_bar(stat = "identity") +  
+  scale_fill_viridis(discrete = TRUE, option = "C", begin = 0.8, end = 0.2) +  # Reversed scale
+  labs(title = "Figure 5: Diabetes Mortality Across Age Groups",
+       x = "", 
+       y = "Average Death per 10,000,000") +  
+  theme_minimal() +  
+  theme(
+    axis.text.x = element_text(size = 9),
+    plot.title = element_text(hjust = 0.5, face = "bold", size = 12)
+  ) +  
+  geom_text(aes(label = round(mean_unit_death, 1)), vjust = -0.5, size = 4)  # Round for better visualization
+```
+
+Figure 5 is a bar chart that represents the average diabetes-related death rate per 10,000,000 people across different age groups.
+The x-axis displays the recategorized age groups, while the y-axis shows the average death rate per 10,000,000 people in each group.
+Each bar corresponds to a specific age group, with the rounded numerical death rate values labeled on top.
+The elderly population experiences the highest diabetes-related mortality rate by a large margin, reflecting the poor diabetic management potentially due to lack of medical intervention and cumulative impact of long-term diabetes complications.
+The middle-aged adult group also has a substantially higher mortality rate than younger groups, reinforcing that diabetes becomes a major health threat in midlife.
+The infant/young child and child/teen groups have extremely low diabetes mortality rates, which aligns with expectations since diabetes-related deaths are rare in early life.
+However, while the total number of deaths in these groups (Figure 3) is nonzero, their mortality rate remains very low when adjusted for population size.
+While Figure 3 showed the absolute number of deaths, this figure adjusts for population size, providing a clearer picture of which age groups face the highest risk.
+The huge gap between young adults and elderly individuals underscores the need for early intervention programs to prevent diabetes-related complications before reaching old age.
+
+## Difference of death rate by locations
+
+After examining the contribution of different age groups to diabetes mortality, geographic variation emerges as another key factor potentially affecting the observed racial disparities. Exploring differences across counties and states can provide further insight into systemic factors contributing to the elevated mortality rates within the AIAN population.
+
+### Difference in mean death rate by locations (county-level)
+
+To begin our analysis, we first focus on the county-level differences in diabetes mortality among AIAN populations.
+Since counties represent more localized healthcare and socioeconomic environments, examining mortality rates at this level allows us to identify specific areas where the burden of diabetes is most severe.
+By identifying the top ten counties with the highest average mortality rates, we can highlight the regions facing the greatest challenges.
+Once these high-burden counties are identified, we then broaden our analysis to explore state-level trends, assessing whether certain states have a disproportionately high mortality burden across multiple counties.
+
+First, the dataset (AIAN_data) is filtered to retain only county-level data by selecting rows where the location_name contains parentheses, as county names are typically formatted this way in the dataset.
+This ensures that only county-level mortality rates are considered in the analysis.
+
+```{r}
+county_AIAN_data <- AIAN_data %>%
+  filter(grepl("\\(", location_name))
+```
+
+Next, the filtered dataset (county_AIAN_data) is grouped by county names (location_name), and the mean mortality rate (value_scaled) is computed for each county, ignoring any missing values (na.rm = TRUE).
+The counties are then arranged in descending order based on their average mortality rates, and the top ten counties with the highest rates are displayed
+
+```{r}
+county_summary <- county_AIAN_data %>%
+  group_by(location_name) %>%
+  summarize(avg_unit_death = mean(value_scaled, na.rm = TRUE)) %>%
+  arrange(desc(avg_unit_death)) %>%
+  slice(1:10)  
+
+print(county_summary)
+
+ggplot(county_summary, aes(x = reorder(location_name, avg_unit_death), y = avg_unit_death)) +
+  geom_bar(stat = "identity",fill = "steelblue") +
+  coord_flip() +
+  labs(title = "Figure 6: Top 10 counties with highest diabetes mortality",
+       x = "Location", y = "Average Death per 10,000,000") +
+  theme_minimal()+
+   theme(
+    plot.title = element_text(hjust = 0.5, face = "bold", size = 12)
+  )
+  
+
+```
+
+Figure 5 is a flipped bar plot visualization of the diabetes mortality across counties, which is displayed using a horizontal format (coord_flip) for better readability.
+The counties are ordered based on their mortality rates, with the highest mortality rates appearing at the top of the flipped bar chart.
+The visualization highlight that certain counties, such as Neshoba, have notably high mortality rates.
+Additionally, multiple counties with high mortality rates are from the same states, including Mississippi and Oklahoma, suggesting state-level patterns that warrant further investigation.
+
+### Difference in mean death rate by locations (state-level)
+
+After identifying the counties with the highest diabetes mortality rates among AIAN populations, we now shifted our focus to the state level to examine broader geographic patterns.
+
+To conduct this analysis, the dataset is first filtered to retain only state-level data by removing entries where the location_name contains spaces, ensuring that only state names are considered.
+Then, we calculated summary statistics—including mean, standard deviation, median, minimum, and maximum mortality rates—are calculated for each state across all ages to capture the overall distribution of diabetes mortality.
+
+```{r}
+state_AIAN_data <- AIAN_data %>%
+  filter(grepl("^[A-Za-z]+(?: [A-Za-z]+)?$", location_name))
+```
+
+```{r}
+state_summary <- state_AIAN_data %>%
+  group_by(location_name) %>%
+  summarise(
+    mean_death_unit = mean(value_scaled, na.rm = TRUE),
+    sd_death_unit = sd(value_scaled, na.rm = TRUE),
+    median_death_unit = median(value_scaled, na.rm = TRUE),
+    min_death_unit = min(value_scaled, na.rm = TRUE),
+    max_death_unit = max(value_scaled, na.rm = TRUE)
+  ) %>%
+  arrange(desc(mean_death_unit))
+
+print(state_summary)
+```
+
+```{r}
+location_avg <- state_AIAN_data %>%
+  group_by(location_name) %>%
+  summarize(avg_death_unit = mean(value_scaled, na.rm = TRUE)) %>%
+  arrange(desc(avg_death_unit)) %>%
+  slice(1:10)  
+
+ggplot(location_avg, aes(x = reorder(location_name, avg_death_unit), y = avg_death_unit)) +
+  geom_bar(stat = "identity",fill = "steelblue") +
+  coord_flip() +
+  labs(title = "Figure 7: Top 10 states with highest AIAN diabetes mortality",
+       x = "Location", y = "Average Death per 10,000,000") +
+  theme_minimal()+
+   theme(
+    plot.title = element_text(hjust = 0.5, face = "bold", size = 12)
+  )
+  
+
+```
+
+Figure 6 is a flipped bar plot visualization of the diabetes mortality across states.
+Applying the same format as Figure 5, the states are reordered based on their mortality rates to ensure that the state with the highest mortality appears at the top.
+The resulting Figure 6 reveals significant geographic disparities in diabetes-related mortality among AIAN populations, with Maine and Rhode Island as the top two states with the highest mortality rate.
+
+### Visualizing state-level diabetes mortality through map
+
+After visualizing the top states with the highest AIAN diabetes mortality rates through a bar plot, we extend our analysis by mapping state-level mortality trends across the U.S.
+While a bar plot effectively highlights the most affected states, a geospatial representation allows us to examine regional disparities more comprehensively.So we decided to visualize diabetes mortality on a map to better understand how mortality rates vary across states.
+
+To generate this map, we first loaded U.S. state boundaries using map_data("state"), which provides the necessary geographic outline.
+Next, we calculated the average mortality rate for each state by grouping the dataset state_AIAN_data by location_name and computing the mean of value_scaled.
+
+Since the map_data("state") dataset uses lowercase state names, we ensured consistency by converting the location_name column to lowercase before merging it with the state boundary data.
+
+```{r}
+us_states <- map_data("state")
+
+location_avg_all <- state_AIAN_data %>%
+  group_by(location_name) %>%
+  summarize(avg_death_unit = mean(value_scaled, na.rm = TRUE)) %>%
+  arrange(desc(avg_death_unit))
+
+location_avg_new <- location_avg_all %>%
+  mutate(location_name = tolower(location_name)) 
+
+# Merge state boundaries with mortality data
+map_data <- us_states %>%
+  left_join(location_avg_new, by = c("region" = "location_name"))
+
+ggplot(map_data, aes(long, lat, group = group, fill = avg_death_unit)) +
+  geom_polygon(color = "white") +  
+  scale_fill_viridis_c(option = "viridis", name = "Death per 10,000,000") + 
+  theme_void() +  
+  labs(
+    title = "Figure 8: AIAN Diabetes Death per 10,000,000 Across States"
+  ) +
+  theme(
+    plot.title = element_text(hjust = 0.5, face = "bold", size = 12),
+    legend.position = "right"
+  )
+```
+
+In Figure 7, each state is filled with a color corresponding to its mortality rate.
+The function geom_polygon(color = "white") ensures that state borders remain visible, while scale_fill_viridis_c(option = "viridis") applies a color gradient, making differences in mortality rates more distinguishable across states.
+A more yellowish color suggests a higher diabetes mortality rate.
+From Figure 7, it becomes evident that mortality rates among the AIAN population are higher in the Northern and central regions of the U.S.
+
+# Conclusion and Futher implication
+
+The current study demonstrates AIAN as the racial group with the highest diabetes-related mortality rates and determined some risk factors for this burden.
+By using the county and state rates of mortality time series data spanning from 2015 to 2019, we have pinpointed the large differences in diabetes-related mortality rates in terms of age and geographic locations in the United States of AIAN populations.
+
+This study also provides insights on potential factors that can impact the diabetes mortality rates in AIAN population, for example, whether there is large proportion of elderly individuals who are especially susceptible to diabetes. In addition, whether risk factors related to regional distribution could also impact the diabetes mortality rates, such as healthcare coverage and access to healthcare. 
+
+We have observed that diabetes mortality does not follow one course of the population but varies among AIAN groups.
+Relatively early in life, death rates in middle-aged and elderly persons are much worse, illustrating the fact that diabetes complications get worse with age.
+Moreover, geographic variations in mortality rates are seen across different counties and states, with specific places reporting them consistently.
+A number of Mississippi and Oklahoma regions are the most affected, while the states of Maine, Rhode Island, South Dekota, North Dekota, and Wyoming present the top 5 average mortality rate.
+The striking conclusions indicate a possible systemic determinant that could include confined medical access, socioeconomic deprivation, or inconsistent programs of diabetes prevention and care within the AIAN populations.
+
+The geographic and demographic disparities revealed in this study highlight the urgency for specific public health interventions.
+Closing the gap in mortality rates necessitates a comprehensive blend of strategies, including: 1) establishing more diabetes diagnostic and treatment centers in high-mortality counties and regions; 2) engaging AIAN communities more effectively through the implementation of cultural and tradition-informed diabetes prevention programs; 3) advancing diabetes screenings across all demographic groups but specifically among middle-aged and elderly individuals.
+
+Based on this analysis, further research could be conducted to deepen our understanding of diabetes-related mortality disparities among AIAN populations.
+While we intentionally focused on pre-pandemic data to avoid confounding effects in our findings, future studies could incorporate post-pandemic data to assess whether and to what extent COVID-19 influenced diabetes-related mortality rates.
+Comparative analysis could be done between pre- and post-pandemic data to obtain a more comprehensive understanding of the pandemic influence.
+
+# Reference
+
+Institute for Health Metrics and Evaluation (IHME).
+United States Diabetes Mortality by County, Race, and Ethnicity 2000-2019.
+Seattle, United States of America: Institute for Health Metrics and Evaluation (IHME), 2025.
+
+This is the dataset we use for our analysis
+
+Spanakis, Elias K., and Sherita Hill Golden.
+“Race/Ethnic Difference in Diabetes and Diabetic Complications.” Current Diabetes Reports, vol.
+13, no. 6, 15 Sept. 2013, pp. 814–823, www.ncbi.nlm.nih.gov/pmc/articles/PMC3830901/, <https://doi.org/10.1007/s11892-013-0421-9>.
+
+This article investigates the racial difference in terms of diabetes incidence and complications, which is the motivation for our study
+
+Bashar, Hussein, et al. “Impact of the COVID‐19 Pandemic on Diabetes‐Related Cardiovascular Mortality in the United States.” Journal of the American Heart Association, vol.
+12, no. 13, 29 June 2023, <https://doi.org/10.1161/jaha.122.028896>.
+Accessed 6 Nov. 2024.
+
+This article suggests that COVID-19 may contribute to an increase in diabetes-related cardiovascular mortality.
+To eliminate potential confounding factors associated with the pandemic, we select the dataset that includes only data from 2000 to 2019.

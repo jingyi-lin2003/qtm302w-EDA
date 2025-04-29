@@ -1,69 +1,84 @@
 # Project Title
-**Diabetes Mortality Rates Across U.S. States and Demographic Groups (2015-2019)**
+**Exploratory Analysis of Diabetes Mortality Rates Across U.S. States and Demographic Groups (2015-2019)**
 
 # Names and Affiliations
-Julia Lin, Jessie Hao, Grace Song  
-Emory University, QTM 302W
+- **Julia Lin**, Emory University, QTM 302W  
+- **Jessie Hao**, Emory University, QTM 302W 
+- **Grace Song**, Emory University, QTM 302W 
 
 # Project Overview
 
 ## Short Description of Project Objectives
-This project explores disparities in diabetes mortality rates across U.S. states from 2015 to 2019, with particular attention to differences among age groups and geographical locations. Our goal is to identify trends and factors that contribute to the risk of diabetes mortality observed in certain racial groups.
+This project aims to examine disparities in diabetes mortality rates from 2015 to 2019. We begin by identifying the racial group with the highest overall average mortality during this period. Focusing on this group, we then investigate whether geographic disparities exist across counties and states. If such disparities are present, we further identify the most vulnerable counties and states for targeted analysis.
 
 ## List of Methods Used
-- Data Cleaning and Preprocessing
-- Data Visualization
-- Geographic Mapping
-- Statistical Testing
+- **Data cleaning & preprocessing**
+- **Summary statistics** of mortality trends
+- **Visualizations**:
+  - Boxplots by age group (IQR, medians, outliers)
+  - Choropleth maps with `geom_polygon(color = "white")` & `scale_fill_viridis_c(option = "viridis")`
+- **Geospatial mapping** using `sf`, `maps`, and `mapdata`
 
 ## List of Platforms/Languages
-- R
-- RStudio
-- Libraries: `tidyverse`, `plotly`, `viridis`, `dplyr`, `ggplot2`, `maps`, `mapdata`, `stats`, `knitr`, `viridis`, `sf`
+- **R**
+- **Rstudio**
+- **Packages:** `dplyr`, `ggplot2`, `stats`, `knitr`, `viridis`, `sf`, `maps`, `mapdata`
 
 # Project Description
 
 ## Research Questions
-- Which racial groups have the highest diabetes mortality rates in the U.S.?
-- How does age distribution contribute to differences in mortality among racial groups?
-- How does mortality vary geographically across states and counties?
+1. Which racial group experiences the highest diabetes mortality?  
+2. How do mortality patterns differ by age category?  
+3. What county- or state-level hotspots emerge?  
+4. Which demographic (age, race) and geographic (county, state) factors drive these disparities?
 
-## Specific Models and Visualization Techniques
-- **Mapping:** Dynamic and static choropleth maps showing mortality by state and racial group.
-- **Trendlines:** Time-series plots tracking mortality changes across years.
+##  Models & Visualization Techniques
+- **Transformation** of mortality rates to mortality per 10 million population  
+- **Boxplots** to compare distributions across race and age groups
+- **Choropleth maps** with Viridis color scales to highlight hotspots
 
-## Challenges Faced
-- Balancing between granularity (county-level) and interpretability (state-level) due to data sparsity.
-- Harmonizing naming conventions across geographic datasets (e.g., lowercase states).
+## Challenges
+- Data cleaning and filtering out relavant and non-repetitive observations
+- Ensuring reproducible visualizations across collaborators
+- Generalizability to post-pandemic situation 
 
-## Potential Next Steps (Future Directions)
-- Incorporate socioeconomic variables (e.g., income, education) to better explain disparities.
-- Expand on the time period to allow observations based on more recent data.
-- Expand analyses to include comorbidities like obesity or cardiovascular disease.
-- Apply predictive modeling to forecast future trends in diabetes mortality.
+## Future directions
+- Incorporate post‑2020 data to assess the impact of COVID‑19  
+- Add socioeconomic and healthcare access covariates  
+- Build predictive models for identifying high‑risk areas
+- Collaborate with local communities to develop culturally informed interventions
 
-# Instructions for Getting Started
-1. Clone the repository.
-2. Open the R Project file (`.Rproj`) or open scripts directly in RStudio.
-3. Install necessary R packages:
-   ```r
-   install.packages(c("tidyverse", "plotly", "viridis", "maps", "mapdata"))
-   
-/ (root)
-|-- README.md
-|-- EDA_Final_Draft.html
-|-- data/
-|    |-- state_comb_data.csv
-|    |-- state_AIAN_data.csv
-|    |-- age_all_data.csv
-|-- scripts/
-|    |-- data_cleaning.R
-|    |-- exploratory_analysis.R
-|    |-- final_visualizations.R
-|-- figures/
-|    |-- state_maps/
-|    |-- race_age_piecharts/
-|    |-- trendlines/
+## Getting Started
+```bash
+# Clone the repository
+git clone https://github.com/YourGitHubUsername/YourRepositoryName.git
+cd YourRepositoryName
+```
+```r
+# Install R dependencies
+install.packages(c(
+  "dplyr","ggplot2","sf","viridis",
+  "knitr","rmarkdown","ggspatial","leaflet"
+))
+```
+1. Open `EDA_Final_Draft.html` in your browser or RStudio.  
+2. Optionally launch an interactive Binder session via the badge above.
+
+## Directory Structure
+```text
+.
+├── README.md                  # this file
+├── data/                      # raw and processed IHME CSVs
+│   ├── IHME_USA_DIABETES_...2015.csv
+│   ├── IHME_USA_DIABETES_...2016.csv
+│   └── ... (up to 2019)
+├── scripts/                   # R analysis scripts
+│   └── EDA_analysis.R
+├── output/                    # figures and tables
+│   └── figures/
+├── EDA_Final_Draft.html       # knitted HTML report
+```
+*(Generate ASCII tree via `tree -L 2` or https://tree.nathanfriend.io)*
 
 # Contact Info 
 Grace Song, grace.song3@emory.edu

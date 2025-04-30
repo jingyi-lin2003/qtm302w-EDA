@@ -61,8 +61,7 @@ install.packages(c(
   "knitr","maps","mapdata","stats"
 ))
 ```
-1. Open `EDA_Final_Draft.Rmd` in your browser or RStudio.  
-2. Optionally launch an interactive Binder session via the badge above.
+Open `EDA_Final_Draft.Rmd` in your RStudio or `EDA_Final_Draft.html` in browser.  
 
 ## Directory Structure
 ```text
@@ -86,7 +85,7 @@ install.packages(c(
     ├── README.md
     └── renv.lock
 ```
-*(Generate ASCII tree via `tree -L 2` or https://tree.nathanfriend.io)*
+*(Generated using https://tree.nathanfriend.io)*
 
 # Contact Info 
 Grace Song, grace.song3@emory.edu

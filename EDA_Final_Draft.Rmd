@@ -106,7 +106,7 @@ aggregated_data$race_name <- reorder(aggregated_data$race_name, -aggregated_data
 # Create the bar plot
 ggplot(aggregated_data, aes(x = race_name, y = annual_death_rate, fill = race_name)) +
   geom_bar(stat = "identity") +
-  labs(title = "Annual Death Rate by Race (Sorted)",
+  labs(title = "Figure 1: Annual Death Rate by Race (Sorted)",
        x = "Race",
        y = "Annual Death Rate") +
   theme_minimal() +
@@ -175,14 +175,14 @@ Conversely, outliers on the lower end may indicate areas with effective diabetes
 
 ```{r}
 hist(AIAN_data$value_scaled, 
-     main = "Figure 1: Distribution of Diabetes Mortality Rates", 
+     main = "Figure 2: Distribution of Diabetes Mortality Rates", 
      xlab = "Death per 10,000,000", 
      col = "steelblue", 
      border = "black",   
      breaks = 30)
 ```
 
-Figure 1 is a bar plot displaying the distribution of diabetes-related mortality rates among non-Hispanic American Indian or Alaska Native (AIAN) individuals from 2015 to 2019.
+Figure 2 is a bar plot displaying the distribution of diabetes-related mortality rates among non-Hispanic American Indian or Alaska Native (AIAN) individuals from 2015 to 2019.
 Each bar represents the number of counties that fall within a given range of diabetes mortality rates.
 This bar plot provides a frequency distribution of mortality rates, helping to answer the question: How are diabetes-related deaths distributed across AIAN populations?
 
@@ -202,7 +202,7 @@ Thus, this project will investigate how do these variables affect the mortality 
 
 Age is a variable that may contribute to the disparity in morality.
 Previous studies have concluded that diabetes has more impact to middle-age and elder populations.
-We want to investigate whether such trend holds true for AIAN group, and if age can account for the large variability observed from figure 1.
+We want to investigate whether such trend holds true for AIAN group, and if age can account for the large variability observed from figure 2.
 
 A boxplot is particularly useful in analyzing diabetes mortality rates across age groups because it provides a clear, concise summary of the distribution, spread, and outliers in the data.
 Compared to other types of plots, it offers several advantages.
@@ -221,7 +221,7 @@ AIAN_data$age_name <- factor(AIAN_data$age_name, levels = age_order, ordered = T
 
 boxplot(value_scaled ~ age_name, data = AIAN_data, 
         las = 2,                               
-        main = "Figure 2: Diabetes Mortality across age group", 
+        main = "Figure 3: Diabetes Mortality across age group", 
         xlab = "",                            
         ylab = "Death per 10,000,000",
         col = "seagreen3",                   
@@ -233,7 +233,7 @@ boxplot(value_scaled ~ age_name, data = AIAN_data,
 grid(nx = NA, ny = NULL, lty = "dashed", col = "gray", lwd = 0.7)
 ```
 
-Figure 2 is a boxplot that visually represents diabetes mortality rates across different age groups within the AIAN population.
+Figure 3 is a boxplot that visually represents diabetes mortality rates across different age groups within the AIAN population.
 This figure provides a summary of the spread, central tendency, and variability of mortality rates for each age category, allowing for a clear comparison of diabetes-related deaths among different age groups.
 
 X-axis (Age Groups): Represents different age categories.
@@ -293,7 +293,7 @@ age_distribution <- age_AIAN_data %>%
 
 ggplot(age_distribution, aes(x = age_group, y = count)) +
   geom_bar(stat = "identity", fill = "steelblue", color = "black", alpha = 0.8, width = 0.6) +  
-  labs(title = "Figure 3: Distribution of Diabetes Mortality Across Age Groups",
+  labs(title = "Figure 4: Distribution of Diabetes Mortality Across Age Groups",
        x = "", 
        y = "Number of Observations") +
   theme_minimal() +  
@@ -306,7 +306,7 @@ ggplot(age_distribution, aes(x = age_group, y = count)) +
   geom_text(aes(label = count), vjust = -0.5, size = 4)
 ```
 
-Figure 3 is a bar chart displaying the distribution of diabetes-related mortality cases across different age groups.
+Figure 4 is a bar chart displaying the distribution of diabetes-related mortality cases across different age groups.
 The x-axis represents recategorized age groups, while the y-axis shows the number of observations (i.e., reported diabetes-related deaths) for each group.
 The height of each bar corresponds to the total number of mortality cases within that age category.
 The number of deaths is lowest among infants and young children, which is expected since diabetes-related mortality is rare at younger ages.
@@ -363,7 +363,7 @@ ggplot(age_trend, aes(x = year, y = mean_death_rate, color = age_group)) +
   geom_line(size = 1.2) +
   geom_point(size = 1) +
   labs(
-    title = "Figure 4: Diabetes Death Rate Trends by Age Group",
+    title = "Figure 5: Diabetes Death Rate Trends by Age Group",
     x = "Year",
     y = "Mean Death Rate (per 10 million)",
     color = "Age Group"
@@ -374,14 +374,14 @@ ggplot(age_trend, aes(x = year, y = mean_death_rate, color = age_group)) +
   )
 ```
 
-Figure 4 shows the mean diabetes-related death rate (per 10 million people) over time across different age groups. The elderly group consistently had the highest death rate, with a slight downward trend from 2015 to 2019. Middle-aged adults maintained the second highest rates, showing relatively little change across the years. Young adults, children/teens, and infants/young children exhibited substantially lower death rates compared to older age groups, with minimal fluctuations over time. Overall, while diabetes mortality was highest among the elderly, a gradual decline is observed, whereas mortality rates for younger groups remained relatively stable.
+Figure 5 shows the mean diabetes-related death rate (per 10 million people) over time across different age groups. The elderly group consistently had the highest death rate, with a slight downward trend from 2015 to 2019. Middle-aged adults maintained the second highest rates, showing relatively little change across the years. Young adults, children/teens, and infants/young children exhibited substantially lower death rates compared to older age groups, with minimal fluctuations over time. Overall, while diabetes mortality was highest among the elderly, a gradual decline is observed, whereas mortality rates for younger groups remained relatively stable.
 
 ```{r}
 age_summary$age_group<-factor(age_summary$age_group, levels = rev(unique(age_summary$age_group)))
 ggplot(age_summary, aes(x = reorder(age_group, mean_unit_death), y = mean_unit_death, fill = age_group)) +  
   geom_bar(stat = "identity") +  
   scale_fill_viridis(discrete = TRUE, option = "C", begin = 0.8, end = 0.2) +  # Reversed scale
-  labs(title = "Figure 5: Diabetes Mortality Across Age Groups",
+  labs(title = "Figure 6: Diabetes Mortality Across Age Groups",
        x = "", 
        y = "Average Death per 10,000,000") +  
   theme_minimal() +  
@@ -392,14 +392,14 @@ ggplot(age_summary, aes(x = reorder(age_group, mean_unit_death), y = mean_unit_d
   geom_text(aes(label = round(mean_unit_death, 1)), vjust = -0.5, size = 4)  # Round for better visualization
 ```
 
-Figure 5 is a bar chart that represents the average diabetes-related death rate per 10,000,000 people across different age groups.
+Figure 6 is a bar chart that represents the average diabetes-related death rate per 10,000,000 people across different age groups.
 The x-axis displays the recategorized age groups, while the y-axis shows the average death rate per 10,000,000 people in each group.
 Each bar corresponds to a specific age group, with the rounded numerical death rate values labeled on top.
 The elderly population experiences the highest diabetes-related mortality rate by a large margin, reflecting the poor diabetic management potentially due to lack of medical intervention and cumulative impact of long-term diabetes complications.
 The middle-aged adult group also has a substantially higher mortality rate than younger groups, reinforcing that diabetes becomes a major health threat in midlife.
 The infant/young child and child/teen groups have extremely low diabetes mortality rates, which aligns with expectations since diabetes-related deaths are rare in early life.
-However, while the total number of deaths in these groups (Figure 3) is nonzero, their mortality rate remains very low when adjusted for population size.
-While Figure 3 showed the absolute number of deaths, this figure adjusts for population size, providing a clearer picture of which age groups face the highest risk.
+However, while the total number of deaths in these groups (Figure 4) is nonzero, their mortality rate remains very low when adjusted for population size.
+While Figure 4 showed the absolute number of deaths, this figure adjusts for population size, providing a clearer picture of which age groups face the highest risk.
 The huge gap between young adults and elderly individuals underscores the need for early intervention programs to prevent diabetes-related complications before reaching old age.
 
 ## Difference of death rate by locations
@@ -436,7 +436,7 @@ print(county_summary)
 ggplot(county_summary, aes(x = reorder(location_name, avg_unit_death), y = avg_unit_death)) +
   geom_bar(stat = "identity",fill = "steelblue") +
   coord_flip() +
-  labs(title = "Figure 6: Top 10 counties with highest diabetes mortality",
+  labs(title = "Figure 7: Top 10 counties with highest diabetes mortality",
        x = "Location", y = "Average Death per 10,000,000") +
   theme_minimal()+
    theme(
@@ -446,7 +446,7 @@ ggplot(county_summary, aes(x = reorder(location_name, avg_unit_death), y = avg_u
 
 ```
 
-Figure 6 is a flipped bar plot visualization of the diabetes mortality across counties, which is displayed using a horizontal format (coord_flip) for better readability.
+Figure 7 is a flipped bar plot visualization of the diabetes mortality across counties, which is displayed using a horizontal format (coord_flip) for better readability.
 The counties are ordered based on their mortality rates, with the highest mortality rates appearing at the top of the flipped bar chart.
 The visualization highlight that certain counties, such as Neshoba, have notably high mortality rates.
 Additionally, multiple counties with high mortality rates are from the same states, including Mississippi and Oklahoma, suggesting state-level patterns that warrant further investigation.
@@ -488,7 +488,7 @@ location_avg <- state_AIAN_data %>%
 ggplot(location_avg, aes(x = reorder(location_name, avg_death_unit), y = avg_death_unit)) +
   geom_bar(stat = "identity",fill = "steelblue") +
   coord_flip() +
-  labs(title = "Figure 7: Top 10 states with highest AIAN diabetes mortality",
+  labs(title = "Figure 8: Top 10 states with highest AIAN diabetes mortality",
        x = "Location", y = "Average Death per 10,000,000") +
   theme_minimal()+
    theme(
@@ -498,9 +498,9 @@ ggplot(location_avg, aes(x = reorder(location_name, avg_death_unit), y = avg_dea
 
 ```
 
-Figure 7 is a flipped bar plot visualization of the diabetes mortality across states.
-Applying the same format as Figure 5, the states are reordered based on their mortality rates to ensure that the state with the highest mortality appears at the top.
-The resulting Figure 6 reveals significant geographic disparities in diabetes-related mortality among AIAN populations, with Maine and Rhode Island as the top two states with the highest mortality rate.
+Figure 8 is a flipped bar plot visualization of the diabetes mortality across states.
+Applying the same format as Figure 7, the states are reordered based on their mortality rates to ensure that the state with the highest mortality appears at the top.
+The resulting Figure 8 reveals significant geographic disparities in diabetes-related mortality among AIAN populations, with Maine and Rhode Island as the top two states with the highest mortality rate.
 
 ### Visualizing state-level diabetes mortality through map
 
@@ -532,7 +532,7 @@ ggplot(map_data, aes(long, lat, group = group, fill = avg_death_unit)) +
   scale_fill_viridis_c(option = "viridis", name = "Death per 10,000,000") + 
   theme_void() +  
   labs(
-    title = "Figure 8: AIAN Diabetes Death per 10,000,000 Across States"
+    title = "Figure 9: AIAN Diabetes Death per 10,000,000 Across States"
   ) +
   theme(
     plot.title = element_text(hjust = 0.5, face = "bold", size = 12),
@@ -540,10 +540,10 @@ ggplot(map_data, aes(long, lat, group = group, fill = avg_death_unit)) +
   )
 ```
 
-In Figure 8, each state is filled with a color corresponding to its mortality rate.
+In Figure 9, each state is filled with a color corresponding to its mortality rate.
 The function geom_polygon(color = "white") ensures that state borders remain visible, while scale_fill_viridis_c(option = "viridis") applies a color gradient, making differences in mortality rates more distinguishable across states.
 A more yellowish color suggests a higher diabetes mortality rate.
-From Figure 8, it becomes evident that mortality rates among the AIAN population are higher in the Northern and central regions of the U.S.
+From Figure 9, it becomes evident that mortality rates among the AIAN population are higher in the Northern and central regions of the U.S.
 
 # Conclusion and Futher implication
 

@@ -72,8 +72,6 @@ install.packages(c(
     │   ├── library/R-4.3/aarch64-apple-darwin20/renv
     │   ├── activate.R 
     │   └── settings.json/
-    │       ├── diagram!
-    │       └── :)
     ├── .gitattributes
     ├── EDA_Final_Draft.Rmd
     ├── EDA_Final_Draft.html

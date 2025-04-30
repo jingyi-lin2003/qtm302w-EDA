@@ -35,15 +35,12 @@ We further examine geographic factors driving diabetes mortality by aggregating 
 Fist prepare the environment for our research project, and load raw annual datasets on diabetes from 2015 to 2019.
 
 ```{r}
-# Set Working Directory 
-setwd("/Users/gracesong/Documents/GitHub/qtm302w-EDA/data")
-
 # Load the 2015-2019 dataset
-data_2015 <- read.csv("IHME_USA_DIABETES_COUNTY_RACE_ETHN_2000_2019_MX_2015_BOTH_Y2025M02D10.csv")
-data_2016 <- read.csv("IHME_USA_DIABETES_COUNTY_RACE_ETHN_2000_2019_MX_2016_BOTH_Y2025M02D10.csv")
-data_2017 <- read.csv("IHME_USA_DIABETES_COUNTY_RACE_ETHN_2000_2019_MX_2017_BOTH_Y2025M02D10.csv")
-data_2018 <- read.csv("IHME_USA_DIABETES_COUNTY_RACE_ETHN_2000_2019_MX_2018_BOTH_Y2025M02D10.csv")
-data_2019 <- read.csv("IHME_USA_DIABETES_COUNTY_RACE_ETHN_2000_2019_MX_2019_BOTH_Y2025M02D10.csv")
+data_2015 <- read.csv("data/IHME_USA_DIABETES_COUNTY_RACE_ETHN_2000_2019_MX_2015_BOTH_Y2025M02D10.csv")
+data_2016 <- read.csv("data/IHME_USA_DIABETES_COUNTY_RACE_ETHN_2000_2019_MX_2016_BOTH_Y2025M02D10.csv")
+data_2017 <- read.csv("data/IHME_USA_DIABETES_COUNTY_RACE_ETHN_2000_2019_MX_2017_BOTH_Y2025M02D10.csv")
+data_2018 <- read.csv("data/IHME_USA_DIABETES_COUNTY_RACE_ETHN_2000_2019_MX_2018_BOTH_Y2025M02D10.csv")
+data_2019 <- read.csv("data/IHME_USA_DIABETES_COUNTY_RACE_ETHN_2000_2019_MX_2019_BOTH_Y2025M02D10.csv")
 ```
 
 ### Load Library

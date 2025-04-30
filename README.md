@@ -68,17 +68,23 @@ install.packages(c(
 ```text
 .
 └── qtm302w-EDA/
+    ├── data/
+    │   ├── AIAN_data.csv
+    │   ├── IHME_USA_DIABETES_COUNTY_RACE_ETHN_2000_2019_MX_2015_BOTH_Y2025M02D10.csv
+    │   ├── IHME_USA_DIABETES_COUNTY_RACE_ETHN_2000_2019_MX_2016_BOTH_Y2025M02D10.csv
+    │   ├── IHME_USA_DIABETES_COUNTY_RACE_ETHN_2000_2019_MX_2017_BOTH_Y2025M02D10.csv
+    │   ├── IHME_USA_DIABETES_COUNTY_RACE_ETHN_2000_2019_MX_2018_BOTH_Y2025M02D10.csv
+    │   └── IHME_USA_DIABETES_COUNTY_RACE_ETHN_2000_2019_MX_2019_BOTH_Y2025M02D10.csv
     ├── renv/
     │   ├── library/R-4.3/aarch64-apple-darwin20/renv
     │   ├── activate.R 
-    │   └── settings.json/
+    │   └── settings.json
     ├── .gitattributes
     ├── EDA_Final_Draft.Rmd
     ├── EDA_Final_Draft.html
     ├── EDA_project.Rproj
     ├── README.md
-    ├── renv.lock
-    └── data
+    └── renv.lock
 ```
 *(Generate ASCII tree via `tree -L 2` or https://tree.nathanfriend.io)*
 

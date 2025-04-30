@@ -58,7 +58,7 @@ cd YourRepositoryName
 # Install R dependencies
 install.packages(c(
   "dplyr","ggplot2","sf","viridis",
-  "knitr","rmarkdown","ggspatial","leaflet"
+  "knitr","maps","mapdata","stats"
 ))
 ```
 1. Open `EDA_Final_Draft.Rmd` in your browser or RStudio.  

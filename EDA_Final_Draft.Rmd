@@ -446,7 +446,7 @@ ggplot(county_summary, aes(x = reorder(location_name, avg_unit_death), y = avg_u
 
 ```
 
-Figure 5 is a flipped bar plot visualization of the diabetes mortality across counties, which is displayed using a horizontal format (coord_flip) for better readability.
+Figure 6 is a flipped bar plot visualization of the diabetes mortality across counties, which is displayed using a horizontal format (coord_flip) for better readability.
 The counties are ordered based on their mortality rates, with the highest mortality rates appearing at the top of the flipped bar chart.
 The visualization highlight that certain counties, such as Neshoba, have notably high mortality rates.
 Additionally, multiple counties with high mortality rates are from the same states, including Mississippi and Oklahoma, suggesting state-level patterns that warrant further investigation.
@@ -498,7 +498,7 @@ ggplot(location_avg, aes(x = reorder(location_name, avg_death_unit), y = avg_dea
 
 ```
 
-Figure 6 is a flipped bar plot visualization of the diabetes mortality across states.
+Figure 7 is a flipped bar plot visualization of the diabetes mortality across states.
 Applying the same format as Figure 5, the states are reordered based on their mortality rates to ensure that the state with the highest mortality appears at the top.
 The resulting Figure 6 reveals significant geographic disparities in diabetes-related mortality among AIAN populations, with Maine and Rhode Island as the top two states with the highest mortality rate.
 
@@ -540,10 +540,10 @@ ggplot(map_data, aes(long, lat, group = group, fill = avg_death_unit)) +
   )
 ```
 
-In Figure 7, each state is filled with a color corresponding to its mortality rate.
+In Figure 8, each state is filled with a color corresponding to its mortality rate.
 The function geom_polygon(color = "white") ensures that state borders remain visible, while scale_fill_viridis_c(option = "viridis") applies a color gradient, making differences in mortality rates more distinguishable across states.
 A more yellowish color suggests a higher diabetes mortality rate.
-From Figure 7, it becomes evident that mortality rates among the AIAN population are higher in the Northern and central regions of the U.S.
+From Figure 8, it becomes evident that mortality rates among the AIAN population are higher in the Northern and central regions of the U.S.
 
 # Conclusion and Futher implication
 

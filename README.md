@@ -61,7 +61,7 @@ install.packages(c(
   "knitr","rmarkdown","ggspatial","leaflet"
 ))
 ```
-1. Open `EDA_Final_Draft.html` in your browser or RStudio.  
+1. Open `EDA_Final_Draft.Rmd` in your browser or RStudio.  
 2. Optionally launch an interactive Binder session via the badge above.
 
 ## Directory Structure
